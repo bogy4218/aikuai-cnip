@@ -36,4 +36,5 @@ jobs:
             exit 0
           fi
           git commit -m "自动更新IP分组 $(date +'%Y-%m-%d')"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git push
