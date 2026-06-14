@@ -50,35 +50,27 @@ jobs:
           echo "=== 文件生成成功 ==="
 
       ##########################################################################
-      # 步骤5：安全处理代码提交（解决 unstaged changes 错误）
+      # 步骤5：安全处理代码提交
       ##########################################################################
       - name: 提交并推送更新
         run: |
-          # 配置Git身份
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
-          
-          # 关键修复：强制暂存所有更改（包括脚本生成的文件）
           git add ikuai_cn_province_ipgroup.txt
-          
-          # 检查是否有需要提交的内容
+
           if git diff --cached --quiet; then
             echo "=== 无文件修改，无需提交 ==="
             exit 0
           fi
-          
-          # 暂存后再拉取，避免 "unstaged changes" 错误
-          git stash  # 暂存已add的修改
-          git pull origin main --rebase  # 拉取远程最新代码
-          git stash pop  # 恢复暂存的修改（此时冲突概率极低）
-          
-          # 再次确认文件状态并提交
+
+          git stash
+          git pull origin main --rebase
+          git stash pop
+
           git add ikuai_cn_province_ipgroup.txt
-          git commit -m "每日自动更新省份IP分组（生成时间：${{ github.run_started_at }}）"
+          git commit -m "每日自动更新省份IP分组 $(date +'%Y-%m-%d')"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git push origin main
-          echo "=== 提交推送成功 ==="
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       ##########################################################################
       # 步骤6：清理旧工作流记录
