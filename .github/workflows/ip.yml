@@ -1,0 +1,39 @@
+name: 每日更新国内IP分组
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 每天 UTC 0 点执行（北京时间 8 点）
+  workflow_dispatch:
+
+jobs:
+  update-ipgroups:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取代码仓库
+        uses: actions/checkout@v4
+
+      - name: 设置Python环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: 运行生成脚本（IPv4 + IPv6 + 省份IP）
+        run: |
+          python generate_ip_groups.py
+
+      - name: 提交更新
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add ikuai_cn_ipv4group.txt ikuai_cn_ipv6group.txt ikuai_cn_province_ipgroup.txt
+          if git diff --cached --quiet; then
+            echo "无变化，跳过提交"
+            exit 0
+          fi
+          git commit -m "自动更新IP分组 $(date +'%Y-%m-%d')"
+          git push
